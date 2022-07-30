@@ -23,11 +23,13 @@ use Safe\Exceptions\JsonException;
 use Throwable;
 
 class Server implements ClientHandler {
-	private const ALLOWED_ORIGINS = [
-		'http://localhost:1337',
-		'http://127.0.0.1:1337',
-		'http://[::1]:1337',
-	];
+	/*
+		private const ALLOWED_ORIGINS = [
+			'http://localhost:1337',
+			'http://127.0.0.1:1337',
+			'http://[::1]:1337',
+		];
+	*/
 
 	public function __construct(
 		private Logger $logger,

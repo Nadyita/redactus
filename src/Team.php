@@ -70,9 +70,9 @@ class Team {
 		});
 	}
 
-	public function hasWord(string $word): bool {
+	public function hasWord(string $word, int $nr): bool {
 		foreach ($this->guesses as $guess) {
-			if (strtolower($guess->word) === strtolower($word)) {
+			if ($guess->number === $nr && strtolower($guess->word) === strtolower($word)) {
 				return true;
 			}
 		}
@@ -83,7 +83,7 @@ class Team {
 	public function guessWord(Client $client, Guess $guess): Promise {
 		$this->lastActivity = time();
 		return call(function() use ($client, $guess): Generator {
-			if ($this->hasWord($guess->word)) {
+			if ($this->hasWord($guess->word, $guess->number)) {
 				return;
 			}
 			$this->guesses []= $guess;
