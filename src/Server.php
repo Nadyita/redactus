@@ -36,6 +36,7 @@ class Server implements ClientHandler {
 	}
 
 	public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise {
+		/*
 		$sentOrigin = $request->getHeader('origin') ?? '<unset>';
 		if (!\in_array($sentOrigin, self::ALLOWED_ORIGINS, true)) {
 			$this->logger->warning('Client from {ip} used wrong origin {origin}', [
@@ -44,6 +45,7 @@ class Server implements ClientHandler {
 			]);
 			return $gateway->getErrorHandler()->handleError(403);
 		}
+		*/
 		$args = $request->getAttribute(Router::class);
 		if ($this->teams->hasTeam($args['team']) === false) {
 			$this->logger->warning('Client from {ip} wants to join non-existing team {team}', [
