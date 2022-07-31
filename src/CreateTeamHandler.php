@@ -26,7 +26,10 @@ class CreateTeamHandler implements RequestHandler {
 		$teamId = $this->teams->createTeam();
 		$response = new Response(
 			Status::OK,
-			['Content-type' => 'application/json'],
+			[
+				'Content-type' => 'application/json',
+				'Access-Control-Allow-Origin' => '*',
+			],
 			"{\"team-id\": \"{$teamId}\"}"
 		);
 		return new Success($response);
