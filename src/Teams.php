@@ -15,10 +15,13 @@ class Teams {
 	) {
 	}
 
-	public function createTeam(): string {
-		$team = new Team();
+	public function createTeam(int $riddleNr): string {
+		$team = new Team($riddleNr);
 		$this->teams[$team->getId()] = $team;
-		$this->logger->info('New team created: {team}', ['team' => $team->getId()]);
+		$this->logger->info('New team for riddle #{nr} created: {team}', [
+			'nr' => $team->getRiddleNr(),
+			'team' => $team->getId(),
+		]);
 		return $team->getId();
 	}
 

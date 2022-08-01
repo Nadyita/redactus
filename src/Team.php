@@ -22,7 +22,9 @@ class Team {
 
 	private int $lastActivity;
 
-	public function __construct() {
+	public function __construct(
+		private int $riddleNr
+	) {
 		$this->lastActivity = time();
 		$this->id = gmp_strval(
 			gmp_init(
@@ -38,6 +40,10 @@ class Team {
 		return $this->id;
 	}
 
+	public function getRiddleNr(): int {
+		return $this->riddleNr;
+	}
+
 	public function getLastActivity(): int {
 		return $this->lastActivity;
 	}
@@ -46,6 +52,7 @@ class Team {
 	public function join(Client $client): Promise {
 		$this->lastActivity = time();
 		return call(function() use ($client): Generator {
+			yield $client->send((new RiddleNr(nr: $this->getRiddleNr()))->toJSON());
 			$this->clients []= $client;
 			foreach ($this->clients as $teamMember) {
 				yield $teamMember->send((new TeamSize(size: count($this->clients)))->toJSON());
@@ -70,9 +77,9 @@ class Team {
 		});
 	}
 
-	public function hasWord(string $word, int $nr): bool {
+	public function hasWord(string $word): bool {
 		foreach ($this->guesses as $guess) {
-			if ($guess->number === $nr && strtolower($guess->word) === strtolower($word)) {
+			if (strtolower($guess->word) === strtolower($word)) {
 				return true;
 			}
 		}
@@ -83,7 +90,7 @@ class Team {
 	public function guessWord(Client $client, Guess $guess): Promise {
 		$this->lastActivity = time();
 		return call(function() use ($client, $guess): Generator {
-			if ($this->hasWord($guess->word, $guess->number)) {
+			if ($this->hasWord($guess->word)) {
 				return;
 			}
 			$this->guesses []= $guess;

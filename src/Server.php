@@ -23,14 +23,6 @@ use Safe\Exceptions\JsonException;
 use Throwable;
 
 class Server implements ClientHandler {
-	/*
-		private const ALLOWED_ORIGINS = [
-			'http://localhost:1337',
-			'http://127.0.0.1:1337',
-			'http://[::1]:1337',
-		];
-	*/
-
 	public function __construct(
 		private Logger $logger,
 		private Teams $teams,
@@ -38,16 +30,6 @@ class Server implements ClientHandler {
 	}
 
 	public function handleHandshake(Gateway $gateway, Request $request, Response $response): Promise {
-		/*
-		$sentOrigin = $request->getHeader('origin') ?? '<unset>';
-		if (!\in_array($sentOrigin, self::ALLOWED_ORIGINS, true)) {
-			$this->logger->warning('Client from {ip} used wrong origin {origin}', [
-				'ip' => $request->getClient()->getRemoteAddress(),
-				'origin' => $sentOrigin,
-			]);
-			return $gateway->getErrorHandler()->handleError(403);
-		}
-		*/
 		$args = $request->getAttribute(Router::class);
 		if ($this->teams->hasTeam($args['team']) === false) {
 			$this->logger->warning('Client from {ip} wants to join non-existing team {team}', [
@@ -101,11 +83,11 @@ class Server implements ClientHandler {
 				yield $client->send($error->toJSON());
 				return;
 			}
-			$this->logger->info('User {name} in team {team} guessed {word} for #{nr}', [
+			$this->logger->info('User {name} in team {team} guessed \"{word}\" for #{nr}', [
 				'name' => $guess->sender,
 				'team' => $team->getId(),
 				'word' => $guess->word,
-				'nr' => $guess->number,
+				'nr' => $team->getRiddleNr(),
 			]);
 			yield $team->guessWord($client, $guess);
 		});

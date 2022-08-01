@@ -13,7 +13,5 @@ class Guess extends Packet {
 
 	public string $sender;
 
-	public int $number;
-
 	public string $word;
 }
