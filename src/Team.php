@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Redactus;
 
 use function Amp\call;
-use function Safe\json_encode;
 
 use Amp\Promise;
 use Amp\Websocket\Client;
@@ -104,15 +103,32 @@ class Team {
 	}
 
 	/** @return Promise<void> */
-	public function sendGuesses(client $client): Promise {
+	public function sendGuesses(Client $client): Promise {
 		return call(function() use ($client): Generator {
-			foreach ($this->guesses as $guess) {
-				yield $client->send(json_encode($guess));
-			}
+			$guesses = new Guesses(guesses: $this->guesses);
+			yield $client->send($guesses->toJSON());
 		});
 	}
 
 	public function getSize(): int {
 		return count($this->clients);
+	}
+
+	public function setRiddleNr(int $riddleNr): void {
+		$this->riddleNr = $riddleNr;
+		$this->guesses = [];
+	}
+
+	/** @return Promise<void> */
+	public function sendRiddleChange(Client $sender): Promise {
+		return call(function() use ($sender): Generator {
+			$riddleChange = new RiddleNr(nr: $this->getRiddleNr());
+			foreach ($this->clients as $client) {
+				if ($sender === $client) {
+					continue;
+				}
+				yield $client->send($riddleChange->toJSON());
+			}
+		});
 	}
 }

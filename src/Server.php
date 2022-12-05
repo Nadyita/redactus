@@ -73,7 +73,15 @@ class Server implements ClientHandler {
 		return call(function() use ($client, $message, $team): Generator {
 			$packet = yield $message->buffer();
 			try {
-				$guess = new Guess(json_decode($packet, true));
+				$json = json_decode($packet, true);
+				$genericPacket = new Packet($json);
+				if ($genericPacket->type === 'guess') {
+					$guess = new Guess($json);
+					yield $this->handleGuessPacket($guess, $team, $client);
+				} elseif ($genericPacket->type === 'riddle-nr') {
+					$riddleChange = new RiddleNr($json);
+					yield $this->handleRiddlePacket($riddleChange, $team, $client);
+				}
 			} catch (JsonException $e) {
 				$error = new Error(error: 'Invalid JSON');
 				yield $client->send($error->toJSON());
@@ -83,13 +91,27 @@ class Server implements ClientHandler {
 				yield $client->send($error->toJSON());
 				return;
 			}
-			$this->logger->info('User {name} in team {team} guessed \"{word}\" for #{nr}', [
-				'name' => $guess->sender,
-				'team' => $team->getId(),
-				'word' => $guess->word,
-				'nr' => $team->getRiddleNr(),
-			]);
-			yield $team->guessWord($client, $guess);
 		});
+	}
+
+	/** @return Promise<void> */
+	private function handleGuessPacket(Guess $guess, Team $team, Client $client): Promise {
+		$this->logger->info('User {name} in team {team} guessed \"{word}\" for #{nr}', [
+			'name' => $guess->sender,
+			'team' => $team->getId(),
+			'word' => $guess->word,
+			'nr' => $team->getRiddleNr(),
+		]);
+		return $team->guessWord($client, $guess);
+	}
+
+	/** @return Promise<void> */
+	private function handleRiddlePacket(RiddleNr $riddle, Team $team, Client $client): Promise {
+		$team->setRiddleNr($riddle->nr);
+		$this->logger->info('Team {team} switches to riddle #{nr}', [
+			'team' => $team->getId(),
+			'nr' => $team->getRiddleNr(),
+		]);
+		return $team->sendRiddleChange($client);
 	}
 }
